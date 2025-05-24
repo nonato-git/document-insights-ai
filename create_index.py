@@ -1,11 +1,14 @@
 import os
 from whoosh import index
 from whoosh.fields import Schema, TEXT, ID
+from ingest import ler_documentos  # Importa sua função de ingestão
 
 def criar_indice_local():
-    schema = Schema(id=ID(stored=True, unique=True),
-                    nome_arquivo=TEXT(stored=True),
-                    conteudo=TEXT)
+    schema = Schema(
+        id=ID(stored=True, unique=True),
+        nome_arquivo=TEXT(stored=True),
+        conteudo=TEXT
+    )
 
     if not os.path.exists("indexdir"):
         os.mkdir("indexdir")
@@ -13,10 +16,16 @@ def criar_indice_local():
     ix = index.create_in("indexdir", schema)
     writer = ix.writer()
 
-    # Exemplo para adicionar um documento
-    writer.add_document(id="1", nome_arquivo="exemplo.txt", conteudo="Este é o conteúdo do documento")
+    documentos = ler_documentos()
+
+    for i, doc in enumerate(documentos):
+        writer.add_document(
+            id=str(i),
+            nome_arquivo=doc['nome_arquivo'],
+            conteudo=doc['conteudo']
+        )
     writer.commit()
-    print("Índice criado localmente em 'indexdir'.")
+    print(f"Índice criado com {len(documentos)} documentos.")
 
 if __name__ == "__main__":
     criar_indice_local()
